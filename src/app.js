@@ -39,7 +39,7 @@ app.use(compression());
 
 // enable cors
 app.use(cors());
-app.options('*', cors());
+app.options(/.*/, cors());
 
 // jwt authentication
 app.use(passport.initialize());
@@ -65,3 +65,4 @@ app.use(errorConverter);
 app.use(errorHandler);
 
 module.exports = app;
+
