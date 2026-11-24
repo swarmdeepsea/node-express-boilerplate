@@ -6,7 +6,7 @@ const swaggerDefinition = require('../../docs/swaggerDef');
 const router = express.Router();
 
 const specs = swaggerJsdoc({
-  swaggerDefinition,
+  definition: swaggerDefinition,
   apis: ['src/docs/*.yml', 'src/routes/v1/*.js'],
 });
 
@@ -19,3 +19,4 @@ router.get(
 );
 
 module.exports = router;
+
