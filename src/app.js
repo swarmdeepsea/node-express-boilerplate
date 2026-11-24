@@ -31,15 +31,45 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // sanitize request data
+// Express 5: req.query is a read-only getter, so sanitize body/params in place
+// and copy query into a new object instead of assigning to req.query.
+const sanitizeInPlace = (obj) => {
+  if (!obj || typeof obj !== 'object') {
+    return obj;
+  }
+  Object.keys(obj).forEach((key) => {
+    if (key.startsWith('$') || key.includes('.')) {
+      delete obj[key];
+    } else {
+      sanitizeInPlace(obj[key]);
+    }
+  });
+  return obj;
+};
+
+app.use((req, res, next) => {
+  sanitizeInPlace(req.body);
+  sanitizeInPlace(req.params);
+  if (req.query && typeof req.query === 'object') {
+    const sanitizedQuery = sanitizeInPlace({ ...req.query });
+    Object.defineProperty(req, 'query', {
+      value: sanitizedQuery,
+      writable: true,
+      configurable: true,
+      enumerable: true,
+    });
+  }
+  next();
+});
+
 app.use(xss());
-app.use(mongoSanitize());
 
 // gzip compression
 app.use(compression());
 
 // enable cors
 app.use(cors());
-app.options('*', cors());
+app.options('/{*splat}', cors());
 
 // jwt authentication
 app.use(passport.initialize());
